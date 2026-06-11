@@ -1,0 +1,11 @@
+# virtual environment — recreated via requirements.txt
+venv/
+
+# raw data — recreated by running 01_acquisition.ipynb
+data/
+
+# jupyter noise
+.ipynb_checkpoints/
+
+# macOS noise
+.DS_Store
