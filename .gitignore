@@ -9,3 +9,6 @@ data/
 
 # macOS noise
 .DS_Store
+
+# trained models — regenerable by rerunning notebook 04
+models/
