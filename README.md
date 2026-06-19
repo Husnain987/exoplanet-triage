@@ -1,12 +1,60 @@
 # Exoplanet Triage
 
-Machine learning classification of Kepler exoplanet candidates using NASA's
+Machine learning classification of Kepler exoplanet candidates from NASA's
 Kepler Objects of Interest (KOI) catalog — ~9,500 telescope signals labeled
-CONFIRMED, CANDIDATE, or FALSE POSITIVE.
+**CONFIRMED**, **CANDIDATE**, or **FALSE POSITIVE**. The goal is a triage model
+that helps prioritize which signals deserve human follow-up.
 
 Data is pulled directly from the [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu)
-via its TAP API, so the pipeline is fully reproducible.
+via its TAP API, so the entire pipeline is reproducible from scratch.
 
-**Status:** In progress — data acquisition, SQL exploration, and cleaning complete; modeling next.
+**Status:** Acquisition, SQL exploration, cleaning, and modeling complete.
+Explainability (SHAP) next.
+
+## Pipeline
+
+| Notebook | What it does |
+|---|---|
+| `01_acquisition` | Pulls the KOI cumulative table (9,564 × 153) from the NASA Exoplanet Archive TAP API |
+| `02_sql_exploration` | Loads data into SQLite, explores class balance and feature distributions with SQL + visualizations |
+| `03_cleaning` | Drops empty/leakage/metadata columns, median-imputes missing values (153 → 106 features) |
+| `04_modeling` | Trains and compares three classifiers with proper evaluation |
+
+## Key Decisions
+
+**Leakage discipline.** Columns encoding NASA's own vetting verdict
+(`koi_score`, `koi_pdisposition`, the `koi_fpflag_*` flags) were dropped before
+modeling — training on them would inflate accuracy while teaching the model
+nothing about the underlying physics.
+
+**Metric choice.** Classes are imbalanced (~51% false positives), so accuracy is
+misleading — a model guessing "false positive" every time scores ~51%. Models
+are judged on precision, recall, and F1.
+
+## Results
+
+| Model | Macro F1 |
+|---|---|
+| Logistic Regression (baseline) | 0.76 |
+| Random Forest | 0.83 |
+| XGBoost | 0.83 |
+
+Two strong, mechanically different tree models converging on 0.83 suggests the
+limit is the data's information content, not model choice. The **CANDIDATE**
+class is hardest (F1 ~0.66) — candidates are by definition unresolved signals
+that overlap both other classes, so the ambiguity is real, not a modeling flaw.
+
+The strongest predictive feature is planet radius (`koi_prad`): confirmed planets
+average ~2.9 Earth radii vs ~165 for false positives, since many false positives
+are stellar-sized eclipsing binaries.
+
+## Limitations
+
+- **Candidate ambiguity** caps overall performance — see above.
+- **Near-leakage features.** The top features (`koi_dicco_msky`, `koi_dikco_msky`)
+  are centroid-offset measurements closely related to a dropped false-positive
+  flag. Kept as raw measurements, but a stricter version might drop them to test
+  performance on fully independent signal.
+- Uses the KOI **catalog** (pre-extracted features), not raw light curves.
 
 ## Setup
