@@ -10,8 +10,8 @@ that helps prioritize which signals deserve human follow-up.
 Data is pulled directly from the [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu)
 via its TAP API, so the entire pipeline is reproducible from scratch.
 
-**Status:** Acquisition, SQL exploration, cleaning, and modeling complete.
-Explainability (SHAP) next.
+**Status:** Acquisition, SQL exploration, cleaning, modeling, and explainability
+complete — full pipeline finished.
 
 ## Pipeline
 
@@ -21,6 +21,7 @@ Explainability (SHAP) next.
 | `02_sql_exploration` | Loads data into SQLite, explores class balance and feature distributions with SQL + visualizations |
 | `03_cleaning` | Drops empty/leakage/metadata columns, median-imputes missing values (153 → 106 features) |
 | `04_modeling` | Trains and compares three classifiers with proper evaluation |
+| `05_explainability` | Computes global SHAP feature importance across the test set and validates explanation faithfulness with a feature-deletion test |
 
 ## Key Decisions
 
@@ -49,6 +50,18 @@ that overlap both other classes, so the ambiguity is real, not a modeling flaw.
 The strongest predictive feature is planet radius (`koi_prad`): confirmed planets
 average ~2.9 Earth radii vs ~165 for false positives, since many false positives
 are stellar-sized eclipsing binaries.
+
+**Explainability.** Global SHAP analysis broadly agrees with the modeling
+results above — `koi_max_mult_ev` (transit signal strength) and `koi_prad`
+rank among the top drivers, alongside the centroid-offset features flagged
+below as near-leakage. To verify these explanations reflect real model
+behavior rather than plausible-looking noise, a deletion test replaced each
+test row's top-5 SHAP-ranked features with their training-set median and
+measured the resulting drop in the model's confidence. Removing SHAP-ranked
+features caused a mean confidence drop of 0.217, versus 0.014 for randomly
+chosen features — SHAP-targeted deletion beat random deletion on 92.4% of
+test rows, evidence the explanations are faithful to the model's actual
+decision-making.
 
 ## Limitations
 
