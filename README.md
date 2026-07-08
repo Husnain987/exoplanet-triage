@@ -1,6 +1,6 @@
 # Exoplanet Triage
 
-🔗 [Try the live demo](YOUR_DEMO_LINK) — pick a real Kepler candidate and see the model's prediction, confidence, and SHAP explanation.
+🔗 [Try the live demo](https://exoplanet-triage-w2uelay4dsjpijhst2ntg9.streamlit.app)) — pick a real Kepler candidate and see the model's prediction, confidence, and SHAP explanation.
 
 Machine learning classification of Kepler exoplanet candidates from NASA's Kepler Objects of Interest (KOI) catalog — ~9,500 telescope signals labeled CONFIRMED, CANDIDATE, or FALSE POSITIVE. The goal is a triage model that helps prioritize which signals deserve human follow-up.
 
