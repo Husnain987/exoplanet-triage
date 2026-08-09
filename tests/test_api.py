@@ -58,3 +58,27 @@ def test_predict_missing_features_is_rejected():
     """A request missing required features should be rejected, not guessed at."""
     response = client.post("/predict", json={"features": {"koi_gmag": 12.4}})
     assert response.status_code == 422
+
+def test_drift_summary_present_for_valid_row():
+    """Every prediction response should include a drift summary."""
+    response = client.post("/predict", json={"features": DEMO_ROW})
+    body = response.json()
+    assert "drift" in body
+    drift = body["drift"]
+    assert drift["n_features_checked"] > 0
+    # A real training-derived row should be mostly in-range: well under half
+    # its features should ever fall in the extreme tails.
+    assert drift["fraction_out_of_range"] < 0.5
+
+
+def test_drift_flags_an_absurd_value():
+    """A wildly out-of-range feature value should be flagged as drifted."""
+    row = dict(DEMO_ROW)
+    # koi_period (orbital period in days) normally sits in a modest range;
+    # 1e9 days is astronomically outside anything in training.
+    row["koi_period"] = 1e9
+    response = client.post("/predict", json={"features": row})
+    body = response.json()
+    drift = body["drift"]
+    assert drift["n_features_out_of_range"] >= 1
+    assert "koi_period" in drift["out_of_range_features"]
