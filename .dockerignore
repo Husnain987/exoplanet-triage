@@ -1,0 +1,12 @@
+# Keep the build context (and image) lean: exclude everything the
+# container doesn't need.
+.venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+notebooks/
+app/
+.streamlit/
+.devcontainer/
+README.md

@@ -10,3 +10,7 @@ data/
 # macOS noise
 .DS_Store
 
+# Python cache and test artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
